@@ -4,3 +4,10 @@ obj/
 *.user
 *.suo
 TestResults/
+
+# Reale STEP-Daten und daraus abgeleitete Korpus-Artefakte gehoeren nie ins Repository
+*.step
+*.stp
+*.STEP
+*.STP
+step-corpus/
