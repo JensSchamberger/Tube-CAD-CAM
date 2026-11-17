@@ -6,6 +6,13 @@ public sealed class ParameterViewModel(string name, double value, Action changed
 
     public string Name { get; } = name;
 
+    /// <summary>Sets the value without raising the change callback (used when loading whole documents).</summary>
+    public void SetSilently(double value)
+    {
+        _value = value;
+        OnPropertyChanged(nameof(Value));
+    }
+
     public double Value
     {
         get => _value;

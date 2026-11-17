@@ -8,6 +8,16 @@ public sealed record CustomProfile(string Name, Polygon2 Outer, IReadOnlyList<Po
 {
     public override bool IsClosedSection => Voids.Count > 0;
     public override double MinOuterDimensionMm => Math.Min(Outer.Bounds.Width, Outer.Bounds.Height);
+    /// <summary>Estimated as 2·A/P (exact for constant-thickness thin-walled sections).</summary>
+    public override double NominalWallThicknessMm
+    {
+        get
+        {
+            double perimeter = Outer.Perimeter + Voids.Sum(v => v.Perimeter);
+            return perimeter > 0 ? 2 * CrossSectionAreaMm2 / perimeter : 0;
+        }
+    }
+
     public override double CrossSectionAreaMm2 => Outer.Area - Voids.Sum(v => v.Area);
     public override string ProfileKey => $"custom-{Name}-{Fmt(CrossSectionAreaMm2)}";
 

@@ -7,6 +7,7 @@ public sealed record UProfile(double HeightMm, double FlangeWidthMm, double WebT
     : ProfileDefinition
 {
     public override bool IsClosedSection => false;
+    public override double NominalWallThicknessMm => Math.Min(WebThicknessMm, FlangeThicknessMm);
     public override double MinOuterDimensionMm => Math.Min(HeightMm, FlangeWidthMm);
 
     public override double CrossSectionAreaMm2 =>
@@ -43,6 +44,7 @@ public sealed record UProfile(double HeightMm, double FlangeWidthMm, double WebT
 public sealed record LProfile(double LegAMm, double LegBMm, double ThicknessMm) : ProfileDefinition
 {
     public override bool IsClosedSection => false;
+    public override double NominalWallThicknessMm => ThicknessMm;
     public override double MinOuterDimensionMm => Math.Min(LegAMm, LegBMm);
     public override double CrossSectionAreaMm2 => ThicknessMm * (LegAMm + LegBMm - ThicknessMm);
     public override string ProfileKey => $"l-{Fmt(LegAMm)}x{Fmt(LegBMm)}x{Fmt(ThicknessMm)}";
@@ -67,6 +69,7 @@ public sealed record IProfile(double HeightMm, double FlangeWidthMm, double WebT
     : ProfileDefinition
 {
     public override bool IsClosedSection => false;
+    public override double NominalWallThicknessMm => Math.Min(WebThicknessMm, FlangeThicknessMm);
     public override double MinOuterDimensionMm => Math.Min(HeightMm, FlangeWidthMm);
 
     public override double CrossSectionAreaMm2 =>

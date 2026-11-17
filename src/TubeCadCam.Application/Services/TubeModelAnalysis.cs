@@ -8,4 +8,5 @@ public sealed record TubeModelAnalysis(
     double CrossSectionAreaMm2,
     int FeatureCount,
     int ContourCount,
+    int UnrecognizedFeatureCount,
     IReadOnlyList<ValidationIssue> Issues);

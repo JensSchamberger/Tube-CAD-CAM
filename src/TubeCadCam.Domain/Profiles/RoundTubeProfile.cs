@@ -6,6 +6,7 @@ public sealed record RoundTubeProfile(double OuterDiameterMm, double WallThickne
 {
     public override bool IsClosedSection => true;
     public override double MinOuterDimensionMm => OuterDiameterMm;
+    public override double NominalWallThicknessMm => WallThicknessMm;
     public double InnerDiameterMm => OuterDiameterMm - (2 * WallThicknessMm);
 
     public override double CrossSectionAreaMm2 =>

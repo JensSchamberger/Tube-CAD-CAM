@@ -10,6 +10,7 @@ public sealed record RectangularTubeProfile(double WidthMm, double HeightMm, dou
         new(sideMm, sideMm, wallThicknessMm, outerCornerRadiusMm);
 
     public bool IsSquare => TubeCadCam.Geometry.Tolerance.AreEqual(WidthMm, HeightMm);
+    public override double NominalWallThicknessMm => WallThicknessMm;
     public double InnerCornerRadiusMm => Math.Max(OuterCornerRadiusMm - WallThicknessMm, 0);
 
     public override bool IsClosedSection => true;

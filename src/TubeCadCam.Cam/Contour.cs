@@ -2,7 +2,7 @@ using TubeCadCam.Geometry;
 
 namespace TubeCadCam.Cam;
 
-public enum ContourKind { Hole, Cutout }
+public enum ContourKind { Hole, Cutout, Slot, ContourCutout, EndNotch }
 
-/// <summary>Closed contour of one feature, in the feature's local 2D frame (origin = feature centre, u = axial, v = circumferential).</summary>
+/// <summary>Closed contour of one feature, in the feature's local 2D frame (origin = feature centre, u = axial, v = circumferential, rotation applied).</summary>
 public sealed record Contour(Guid FeatureId, ContourKind Kind, Polygon2 Outline);

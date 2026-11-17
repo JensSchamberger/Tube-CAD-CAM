@@ -18,6 +18,19 @@ public static class ProfileSectionBuilder
             throw new ArgumentException($"Profile is invalid: {issues[0].Message}", nameof(profile));
         }
 
+        ProfileSection section = BuildRaw(profile, circleSegments, cornerSegments);
+        if (profile is UProfile or LProfile or IProfile)
+        {
+            Bounds2 b = section.Outer.Bounds;
+            Vector2 centre = new((b.Min.X + b.Max.X) / 2, (b.Min.Y + b.Max.Y) / 2);
+            return new ProfileSection(section.Outer.Translated(Vector2.Zero - centre), []);
+        }
+
+        return section;
+    }
+
+    private static ProfileSection BuildRaw(ProfileDefinition profile, int circleSegments, int cornerSegments)
+    {
         Vector2 c = Vector2.Zero;
         switch (profile)
         {

@@ -1,3 +1,3 @@
 namespace TubeCadCam.Presentation;
 
-public enum ProfileKind { Round, Rectangular, Square, U, L, I }
+public enum ProfileKind { Round, Rectangular, Square, U, L, I, Custom }

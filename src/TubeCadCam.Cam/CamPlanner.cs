@@ -13,6 +13,7 @@ public sealed class CamPlanner(IContourRecognizer recognizer)
             return Result<CamPlan>.Failure(issues);
         }
 
-        return Result<CamPlan>.Success(new CamPlan(model, recognizer.Recognize(model), CamPlanStatus.Draft), issues);
+        RecognitionResult r = recognizer.Recognize(model);
+        return Result<CamPlan>.Success(new CamPlan(model, r.Contours, CamPlanStatus.Draft, r.UnrecognizedFeatureIds), issues);
     }
 }

@@ -1,34 +1,42 @@
 using TubeCadCam.Cad;
-using TubeCadCam.Geometry;
 
 namespace TubeCadCam.Cam;
 
 /// <summary>
-/// Derives contours from explicit CAD features (holes, rectangular cutouts).
-/// Recognition of contours from imported solids (STEP) is not implemented yet.
+/// Derives closed contours from wall-cut CAD features (hole, cutout, slot, contour cut-out, end notch).
+/// Not yet recognised (reported as such): slits (through both walls), miters (end cuts), and contours from imported solids (STEP).
 /// </summary>
 public sealed class FeatureContourRecognizer : IContourRecognizer
 {
     public const int CircleSegments = 128;
     public const int CornerSegments = 12;
 
-    public IReadOnlyList<Contour> Recognize(TubeModel model)
+    public RecognitionResult Recognize(TubeModel model)
     {
-        var result = new List<Contour>();
+        var contours = new List<Contour>();
+        var unrecognized = new List<Guid>();
         foreach (TubeFeature f in model.Features)
         {
-            switch (f)
+            ContourKind? kind = f switch
             {
-                case HoleFeature h:
-                    result.Add(new Contour(h.Id, ContourKind.Hole, Polygon2.Circle(Vector2.Zero, h.DiameterMm / 2, CircleSegments)));
-                    break;
-                case RectangularCutoutFeature c:
-                    result.Add(new Contour(c.Id, ContourKind.Cutout,
-                        Polygon2.RoundedRectangle(c.LengthMm, c.WidthMm, c.CornerRadiusMm, Vector2.Zero, CornerSegments)));
-                    break;
+                HoleFeature => ContourKind.Hole,
+                RectangularCutoutFeature => ContourKind.Cutout,
+                SlotFeature => ContourKind.Slot,
+                ContourCutoutFeature => ContourKind.ContourCutout,
+                EndNotchFeature => ContourKind.EndNotch,
+                _ => null,
+            };
+
+            if (kind is { } k && f is IWallCut cut)
+            {
+                contours.Add(new Contour(f.Id, k, cut.Outline(CircleSegments, CornerSegments)));
+            }
+            else
+            {
+                unrecognized.Add(f.Id);
             }
         }
 
-        return result;
+        return new RecognitionResult(contours, unrecognized);
     }
 }

@@ -8,4 +8,4 @@ namespace TubeCadCam.Cam;
 /// </summary>
 public enum CamPlanStatus { Draft, Validated }
 
-public sealed record CamPlan(TubeModel Model, IReadOnlyList<Contour> Contours, CamPlanStatus Status);
+public sealed record CamPlan(TubeModel Model, IReadOnlyList<Contour> Contours, CamPlanStatus Status, IReadOnlyList<Guid>? UnrecognizedFeatureIds = null);

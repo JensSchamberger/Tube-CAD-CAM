@@ -22,6 +22,9 @@ public abstract record ProfileDefinition
     /// <summary>Analytical cross-section area in mm².</summary>
     [JsonIgnore] public abstract double CrossSectionAreaMm2 { get; }
 
+    /// <summary>Nominal wall (material) thickness in mm; used for visualising cut depth, never for cutting technology.</summary>
+    [JsonIgnore] public abstract double NominalWallThicknessMm { get; }
+
     /// <summary>Smallest outer extent of the section in mm.</summary>
     [JsonIgnore] public abstract double MinOuterDimensionMm { get; }
 
