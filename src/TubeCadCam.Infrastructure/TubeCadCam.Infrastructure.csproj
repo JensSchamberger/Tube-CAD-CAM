@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\TubeCadCam.Application\TubeCadCam.Application.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Cad\TubeCadCam.Cad.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Domain\TubeCadCam.Domain.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Geometry\TubeCadCam.Geometry.csproj" />
+  </ItemGroup>
+</Project>

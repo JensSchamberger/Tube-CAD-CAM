@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>TubeCadCam</AssemblyName>
+    <RootNamespace>TubeCadCam.Host.Wpf</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TubeCadCam.Presentation\TubeCadCam.Presentation.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Infrastructure\TubeCadCam.Infrastructure.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Application\TubeCadCam.Application.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Geometry\TubeCadCam.Geometry.csproj" />
+  </ItemGroup>
+</Project>

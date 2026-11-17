@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TubeCadCam.Application/TubeCadCam.Application.csproj" />
+    <Project Path="src/TubeCadCam.Cad/TubeCadCam.Cad.csproj" />
+    <Project Path="src/TubeCadCam.Cam/TubeCadCam.Cam.csproj" />
+    <Project Path="src/TubeCadCam.Domain/TubeCadCam.Domain.csproj" />
+    <Project Path="src/TubeCadCam.Geometry/TubeCadCam.Geometry.csproj" />
+    <Project Path="src/TubeCadCam.Host.Wpf/TubeCadCam.Host.Wpf.csproj" />
+    <Project Path="src/TubeCadCam.Infrastructure/TubeCadCam.Infrastructure.csproj" />
+    <Project Path="src/TubeCadCam.Nesting/TubeCadCam.Nesting.csproj" />
+    <Project Path="src/TubeCadCam.Presentation/TubeCadCam.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TubeCadCam.Tests/TubeCadCam.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Geometry\TubeCadCam.Geometry.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Domain\TubeCadCam.Domain.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Cad\TubeCadCam.Cad.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Cam\TubeCadCam.Cam.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Nesting\TubeCadCam.Nesting.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Application\TubeCadCam.Application.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Infrastructure\TubeCadCam.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\TubeCadCam.Presentation\TubeCadCam.Presentation.csproj" />
+  </ItemGroup>
+</Project>
