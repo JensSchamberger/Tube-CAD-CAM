@@ -4,9 +4,20 @@ namespace TubeCadCam.Tests;
 
 /// <summary>
 /// STEP-Korpus-Infrastruktur. Reale Daten kommen ausschliesslich aus der Umgebungsvariable
-/// TUBECAD_STEP_DIR (Standard: kein Pfad). Sind sie nicht erreichbar, melden die Korpustests das
-/// ausdruecklich als uebersprungen – sie sind dann NICHT bestanden. Es werden keine Rohrdaten erfunden.
+/// TUBECAD_STEP_DIR (Standard: kein Pfad). Sind sie nicht erreichbar, werden die Korpustests von xUnit als
+/// SKIPPED gemeldet (nie als bestanden). Es werden keine Rohrdaten erfunden.
 /// </summary>
+/// <summary>Fact, der ohne erreichbaren STEP-Korpus als ÜBERSPRUNGEN (nicht bestanden) gemeldet wird.</summary>
+public sealed class RequiresStepCorpusFactAttribute : FactAttribute
+{
+    public RequiresStepCorpusFactAttribute()
+    {
+        var p = Environment.GetEnvironmentVariable(StepCorpusTests.EnvVar);
+        if (string.IsNullOrWhiteSpace(p) || !Directory.Exists(p))
+            Skip = $"STEP-Korpus nicht erreichbar ({StepCorpusTests.EnvVar} nicht gesetzt oder Ordner fehlt) - kein Geometrienachweis.";
+    }
+}
+
 public class StepCorpusTests
 {
     public const string EnvVar = "TUBECAD_STEP_DIR";
@@ -83,11 +94,10 @@ public class StepCorpusTests
 
     // ---- Korpus-Tests: laufen nur mit realen Daten ----
 
-    [Fact]
+    [RequiresStepCorpusFact]
     public void Real_corpus_scan_has_no_read_errors()
     {
-        var root = RealRoot();
-        if (root is null) { Console.WriteLine($"SKIPPED (Daten fehlen): {EnvVar} nicht gesetzt/erreichbar."); return; }
+        var root = RealRoot()!;
         var m = StepCorpusScanner.Scan(root);
         Assert.Empty(m.Errors);
         Assert.True(m.FileCount > 0, "Ordner erreichbar, aber ohne STEP/STP-Dateien.");

@@ -17,7 +17,7 @@ Es wurden keine Daten erfunden und keine Ergebnisse simuliert.
 - Tests `StepCorpusTests`: Scanner auf kleinen Text-Fixtures (nur Parser, keine Rohrdaten), Determinismus,
   Quelldateien unveraendert, fehlender Ordner = expliziter Fehler `corpus.root-missing`.
   Der Test `Real_corpus_scan_has_no_read_errors` liest `TUBECAD_STEP_DIR`; ohne Daten gibt er
-  `SKIPPED (Daten fehlen)` aus und **zaehlt trotzdem als bestanden** (xUnit ohne Skip-Erweiterung) – er belegt dann nichts.
+  als **Uebersprungen** (xUnit-Skip ueber `RequiresStepCorpusFact`) gemeldet – nie als bestanden.
 - `.gitignore` schliesst `*.step`, `*.stp` und `step-corpus/` aus. Es werden keine STEP-Dateien committet.
 
 ## Nicht umgesetzt (blockiert durch fehlende Daten bzw. fehlenden Importer)

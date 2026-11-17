@@ -63,3 +63,15 @@ Ausführlich in [Boolean-Entscheidung.md](Boolean-Entscheidung.md) §5. Wesentli
 4. Netzqualität: lange, schmale Dreiecke (Extrusionsfacetten, Seitenverhältnis im Mittel um 20:1, 95-%-Quantil 2 000–5 000:1, Einzelwerte über 10⁴:1; schon das Rohr ohne Feature hat 2 000:1) – für Anzeige und Kantenextraktion geeignet, nicht für FE.
 5. CAM: Konturen weiterhin nur für Wandschnitte; Schlitz und Gehrung bleiben „nicht erkannt“. **NC-Ausgabe bleibt gesperrt**, keine Postprozessoren, keine Maschinenlogik.
 6. Weiter offen aus Phase 2: STEP-Import, Undo/Redo, keine Normprofile mitgeliefert, Leitzentrale-Spezifikation, Maschinenkonvention.
+
+## Nachtrag: Bestanden / Fehlgeschlagen / Übersprungen
+Der STEP-Korpus-Test (`RequiresStepCorpusFact`) wird ohne erreichbaren Korpus von xUnit als **Übersprungen** gemeldet und nie als bestanden.
+Stand: 281 Tests, davon 280 bestanden, 0 fehlgeschlagen, 1 übersprungen (reale STEP-Daten nicht verfügbar). Geometrietests
+(Volumen, Topologie, Orakel) laufen ausschließlich auf parametrisch erzeugten Körpern und stützen sich nicht auf den Korpus.
+
+## Bestandsaufnahme Materialentfernung (Feature → echte Geometrie)
+| Feature | Echte Öffnung | Bemerkung |
+|---|---|---|
+| Bohrung, Langloch, Rechteck-/Konturausschnitt | ja | Wandschnitt je Schnittlinie; Kantenüberschreitung → `solid.profile-edge` |
+| Schlitz, Ausklinkung | ja | Stirnseite; Kombination mit Gehrung am selben Ende → `solid.end-unsupported` |
+| Gehrung | ja | Endebenen der Extrusion, exakt |
