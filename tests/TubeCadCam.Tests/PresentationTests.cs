@@ -111,6 +111,15 @@ public class ProfileEditorTests
     }
 
     [Fact]
+    public void Area_text_shows_value_or_dash()
+    {
+        var vm = new ProfileEditorViewModel();
+        Assert.Equal("Querschnittsfläche: " + vm.AreaMm2.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + " mm²", vm.AreaText);
+        vm.Parameters.First(p => p.Name == "WallThickness").Value = 99;
+        Assert.Equal("Querschnittsfläche: –", vm.AreaText);
+    }
+
+    [Fact]
     public void Point_parser_handles_separators_and_blank_line_loops()
     {
         var (loops, issues) = PointListParser.Parse("1;2\r\n3 4\n\n5;6\n7;8.5\n9;1", "t");
@@ -476,5 +485,41 @@ public sealed class EditorViewModelTests : IDisposable
         Assert.Single(plan.Contours);
         Assert.Single(plan.UnrecognizedFeatureIds!);
         Assert.Equal(CamPlanStatus.Draft, plan.Status);
+    }
+}
+
+public class LabelTests
+{
+    [Fact]
+    public void Every_editable_parameter_has_a_german_label_with_unit()
+    {
+        var names = new HashSet<string>();
+        foreach (ProfileKind k in Enum.GetValues<ProfileKind>())
+        {
+            foreach (var p in new ProfileEditorViewModel { Kind = k }.Parameters) { names.Add(p.Name); }
+        }
+
+        foreach (FeatureKind k in Enum.GetValues<FeatureKind>())
+        {
+            foreach (var (n, _) in FeatureDescriptors.Defaults(k, 1000)) { names.Add(n); }
+        }
+
+        Assert.All(names, n => Assert.True(ParameterLabels.Label(n) != n && (ParameterLabels.Label(n).EndsWith("[mm]") || ParameterLabels.Label(n).EndsWith("[°]")), n));
+        Assert.Equal("Unbekannt", ParameterLabels.Label("Unbekannt"));
+    }
+
+    [Fact]
+    public void Kinds_have_distinct_labels()
+    {
+        Assert.Equal(Enum.GetValues<ProfileKind>().Length, Enum.GetValues<ProfileKind>().Select(ProfileKindLabels.Label).Distinct().Count());
+        Assert.Equal(Enum.GetValues<FeatureKind>().Length, Enum.GetValues<FeatureKind>().Select(FeatureDescriptors.Label).Distinct().Count());
+    }
+
+    [Fact]
+    public void New_feature_kind_selection_is_used_by_add_command()
+    {
+        var vm = new MainViewModel { NewFeatureKind = FeatureKind.Slot };
+        vm.AddFeatureCommand.Execute(vm.NewFeatureKind);
+        Assert.Equal(FeatureKind.Slot, vm.SelectedFeature!.Kind);
     }
 }

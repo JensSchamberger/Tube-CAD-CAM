@@ -59,6 +59,11 @@ public sealed class ProfileEditorViewModel : ViewModelBase
     public bool IsValid => Definition is not null && Issues.Count == 0;
     public double AreaMm2 => IsValid ? Definition!.CrossSectionAreaMm2 : double.NaN;
 
+    /// <summary>Display text for the section area ("–" while the profile is invalid).</summary>
+    public string AreaText => IsValid
+        ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"Querschnittsfläche: {AreaMm2:0.##} mm²")
+        : "Querschnittsfläche: –";
+
     /// <summary>Preview polygons scaled into a <see cref="PreviewSize"/> box, y pointing down (screen coordinates).</summary>
     public IReadOnlyList<IReadOnlyList<Vector2>> PreviewLoops { get => _previewLoops; private set => Set(ref _previewLoops, value); }
 
@@ -182,6 +187,7 @@ public sealed class ProfileEditorViewModel : ViewModelBase
         PreviewLoops = IsValid ? BuildPreview(def!) : [];
         OnPropertyChanged(nameof(IsValid));
         OnPropertyChanged(nameof(AreaMm2));
+        OnPropertyChanged(nameof(AreaText));
         ProfileChanged?.Invoke(this, EventArgs.Empty);
     }
 

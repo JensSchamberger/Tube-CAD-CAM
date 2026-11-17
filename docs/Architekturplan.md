@@ -8,15 +8,15 @@ Host.Wpf ─► Presentation ─► Application ─► Cam ─► Cad ─► Dom
 ```
 | Projekt | Verantwortung | Abhängig von |
 |---|---|---|
-| `Geometry` | Vektoren, Polygone, Toleranzen – keine Fachlogik | – |
+| `Geometry` | Vektoren, Polygone, Dreiecksnetz, Triangulierung – keine Fachlogik | – |
 | `Domain` | Profildefinitionen (parametrisch), Material, Teil, Auftrag, Status, `Result` | Geometry |
-| `Cad` | Features (Bohrung, Ausschnitt), `TubeModel`, Validierung, Querschnittsaufbau | Domain, Geometry |
+| `Cad` | Features (7 Typen), `TubeModel`, Validierung, Koordinatensystem, Querschnitts- und 3D-Körper-/Szenengenerator | Domain, Geometry |
 | `Cam` | Konturen, Planer, Maschinenmodell/-adapter, Postprozessor-Schnittstelle, **NC-Freigabe-Gate** | Cad, Domain, Geometry |
 | `Nesting` | 1D-Stangenbelegung mit Schnittspalt/Restlänge | Domain |
 | `Application` | Use Cases, Ports (Repository, STEP, Lizenz), Leitzentrale-Vertrag V1, **Funktionskatalog** (MCP-Basis) | Cam, Cad, Nesting, Domain |
 | `Infrastructure` | JSON-Dateispeicher, Adapter für Ports | Application, Cad, Domain |
-| `Presentation` | MVVM-ViewModels (plattformunabhängig, testbar) | Application, Cad, Domain |
-| `Host.Wpf` | Composition Root, Views (net10.0-windows) | Presentation, Infrastructure |
+| `Presentation` | MVVM-ViewModels, Orbit-Kamera, Auswahl (plattformunabhängig, testbar) | Application, Cad, Domain |
+| `Host.Wpf` | Composition Root, Views, 3D-Rendering (net10.0-windows) | Presentation, Infrastructure |
 
 Die Regeln sind als Test festgeschrieben (`ArchitectureTests`). Cam und Nesting kennen sich nicht (Prinzip 4).
 
@@ -33,7 +33,7 @@ Die Regeln sind als Test festgeschrieben (`ArchitectureTests`). Cam und Nesting 
 | Phase | Inhalt | Status |
 |---|---|---|
 | 1 | Gerüst, Profilmodelle, Features, Konturen aus Features, 1D-Nesting-Baseline, JSON-Speicher, Funktionskatalog, WPF-Profileditor | **erledigt** |
-| 2 | Profilbibliothek/Normprofile, 3D-Vorschau, Feature-Editor in der UI | offen |
+| 2 | Profilbibliothek (Mechanismus), 3D-Kern, Feature-Editor, interaktive 3D-UI, Dokument speichern/laden – siehe `docs/Phase2-Ergebnis.md` | **erledigt** (UI nur gebaut, nicht ausgeführt; keine Normdaten) |
 | 3 | STEP-Import (Bibliothek wählen), Konturerkennung aus Solids | offen |
 | 4 | Maschinenkonfiguration (Datei), Kinematikmodell, Schneidreihenfolge, An-/Ausfahrwege | offen |
 | 5 | Kollisions-/Spannfutterprüfung, Simulation | offen |

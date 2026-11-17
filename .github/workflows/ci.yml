@@ -12,3 +12,5 @@ jobs:
           global-json-file: global.json
       - run: dotnet build -c Release
       - run: dotnet test -c Release --no-build
+      # Windows-only WPF smoke test (real window, binding-error detection)
+      - run: dotnet test tests/TubeCadCam.Host.Wpf.Tests -c Release

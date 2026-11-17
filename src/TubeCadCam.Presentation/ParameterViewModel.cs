@@ -6,6 +6,8 @@ public sealed class ParameterViewModel(string name, double value, Action changed
 
     public string Name { get; } = name;
 
+    public string Label => ParameterLabels.Label(Name);
+
     /// <summary>Sets the value without raising the change callback (used when loading whole documents).</summary>
     public void SetSilently(double value)
     {

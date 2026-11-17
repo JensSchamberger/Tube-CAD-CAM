@@ -31,6 +31,7 @@ public sealed class MainViewModel : ViewModelBase
     private bool _isDirty;
     private bool _suspend;
     private string _libraryDesignation = string.Empty;
+    private FeatureKind _newFeatureKind = FeatureKind.Hole;
 
     public MainViewModel() : this(null, null, null)
     {
@@ -88,6 +89,7 @@ public sealed class MainViewModel : ViewModelBase
     public string Name { get => _name; set { if (Set(ref _name, value)) { OnEdited(); } } }
     public string MaterialId { get => _materialId; set { if (Set(ref _materialId, value)) { OnEdited(); } } }
     public double LengthMm { get => _lengthMm; set { if (Set(ref _lengthMm, value)) { OnEdited(); } } }
+    public FeatureKind NewFeatureKind { get => _newFeatureKind; set => Set(ref _newFeatureKind, value); }
     public string LibraryDesignation { get => _libraryDesignation; set => Set(ref _libraryDesignation, value); }
 
     public TubeModel? Model { get => _model; private set => Set(ref _model, value); }

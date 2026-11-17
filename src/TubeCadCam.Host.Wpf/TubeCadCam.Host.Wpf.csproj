@@ -10,6 +10,11 @@
     <ProjectReference Include="..\TubeCadCam.Presentation\TubeCadCam.Presentation.csproj" />
     <ProjectReference Include="..\TubeCadCam.Infrastructure\TubeCadCam.Infrastructure.csproj" />
     <ProjectReference Include="..\TubeCadCam.Application\TubeCadCam.Application.csproj" />
+    <ProjectReference Include="..\TubeCadCam.Cad\TubeCadCam.Cad.csproj" />
     <ProjectReference Include="..\TubeCadCam.Geometry\TubeCadCam.Geometry.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Shipped profile catalogs are copied next to the executable. -->
+    <None Include="..\..\catalogs\**\*" Link="catalogs\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
