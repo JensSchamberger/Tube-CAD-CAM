@@ -75,3 +75,8 @@ Stand: 281 Tests, davon 280 bestanden, 0 fehlgeschlagen, 1 übersprungen (reale 
 | Bohrung, Langloch, Rechteck-/Konturausschnitt | ja | Wandschnitt je Schnittlinie; Kantenüberschreitung → `solid.profile-edge` |
 | Schlitz, Ausklinkung | ja | Stirnseite; Kombination mit Gehrung am selben Ende → `solid.end-unsupported` |
 | Gehrung | ja | Endebenen der Extrusion, exakt |
+
+## Phase 2.8 – Windows-Beta
+Siehe `docs/Beta-Testanleitung.md`. Es stand kein Windows-Desktop zur Verfügung; die UI wurde **nicht** ausgeführt (alle UI-Tests: übersprungen/nicht gelaufen, keine Ergebnisse).
+Paket per Cross-Publish gebaut (`tools/build-beta.sh`, win-x64 self-contained, 63,6 MB), SHA-256 `f959ee82ab71d65a813b8ff81984d7869bedb4039eeaa3ed624d8f934585b073` (nicht bitgleich reproduzierbar zwischen Builds garantiert).
+CI (`windows-latest`) baut das Paket zusätzlich und lädt es als Artefakt `TubeCadCam-Beta-win-x64` hoch. Neuer Windows-Test: Matrix Profil × Feature.

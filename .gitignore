@@ -11,3 +11,6 @@ TestResults/
 *.STEP
 *.STP
 step-corpus/
+
+# Beta-Pakete
+dist/

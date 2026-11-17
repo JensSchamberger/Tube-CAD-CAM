@@ -113,4 +113,38 @@ public sealed class MainWindowSmokeTests
             lock (listener.Errors) { Assert.True(listener.Errors.Count == 0, string.Join(Environment.NewLine, listener.Errors)); }
         });
     }
+
+    [Fact]
+    public void Every_profile_kind_with_every_feature_kind_renders_the_view_model_body_without_binding_errors()
+    {
+        RunSta(() =>
+        {
+            var listener = new BindingErrorListener();
+            PresentationTraceSources.DataBindingSource.Listeners.Add(listener);
+            PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Warning;
+            if (System.Windows.Application.Current is null) { _ = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown }; }
+
+            var vm = new MainViewModel(new JsonModelDocumentStore(), new JsonProfileCatalogProvider(null, Path.Combine(Path.GetTempPath(), "tubecadcam-ui-test-user2.json")), new NoDialogs());
+            var window = new MainWindow { DataContext = vm, Width = 1280, Height = 820 };
+            window.Show();
+            Pump(window);
+            var view = (SceneView)window.FindName("Scene3D");
+
+            foreach (ProfileKind pk in new[] { ProfileKind.Round, ProfileKind.Rectangular, ProfileKind.Square, ProfileKind.U, ProfileKind.L, ProfileKind.I })
+            {
+                vm.ProfileEditor.Kind = pk;
+                Pump(window);
+                foreach (FeatureKind fk in Enum.GetValues<FeatureKind>())
+                {
+                    vm.AddFeature(fk);
+                    Pump(window);
+                    // Whatever the outcome (opening or explicit failure), the view must show exactly the view-model body.
+                    Assert.Equal(vm.Scene!.Body.TriangleCount, view.BodyTriangleCount);
+                }
+            }
+
+            window.Close();
+            lock (listener.Errors) { Assert.True(listener.Errors.Count == 0, string.Join(Environment.NewLine, listener.Errors)); }
+        });
+    }
 }
