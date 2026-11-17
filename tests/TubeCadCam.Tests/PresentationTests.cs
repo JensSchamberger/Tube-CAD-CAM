@@ -252,7 +252,7 @@ public sealed class EditorViewModelTests : IDisposable
         Assert.True(vm.IsDirty);
         if (kind != FeatureKind.EndMiter)
         {
-            Assert.Contains(vm.Scene!.Features, s => s.FeatureId == f.Id);
+            Assert.Contains(vm.Scene!.PreviewShapes, s => s.FeatureId == f.Id);
         }
     }
 
@@ -261,9 +261,9 @@ public sealed class EditorViewModelTests : IDisposable
     {
         var vm = new MainViewModel();
         var f = vm.AddFeature(FeatureKind.Hole);
-        double before = vm.Scene!.Features.Single().Mesh.Bounds.Max.Y - vm.Scene.Features.Single().Mesh.Bounds.Min.Y;
+        double before = vm.Scene!.PreviewShapes.Single().Mesh.Bounds.Max.Y - vm.Scene.PreviewShapes.Single().Mesh.Bounds.Min.Y;
         f.Parameters.First(p => p.Name == "Diameter").Value = 20;
-        double after = vm.Scene!.Features.Single().Mesh.Bounds.Max.Y - vm.Scene.Features.Single().Mesh.Bounds.Min.Y;
+        double after = vm.Scene!.PreviewShapes.Single().Mesh.Bounds.Max.Y - vm.Scene.PreviewShapes.Single().Mesh.Bounds.Min.Y;
         Assert.True(after > before * 1.5);
         Assert.Equal(20, ((HoleFeature)vm.Model!.Features.Single()).DiameterMm);
     }
@@ -393,7 +393,8 @@ public sealed class EditorViewModelTests : IDisposable
             var f = vm.AddFeature(k);
             if (f.Parameters.FirstOrDefault(p => p.Name == "AxialPosition") is { } ap) { ap.Value = axial[(int)k % 4] + ((int)k / 4 * 0); }
             if (k == FeatureKind.EndNotch) { f.Parameters.First(p => p.Name == "Angle").Value = 270; }
-            if (k is FeatureKind.EndMiter or FeatureKind.Slit) { f.End = TubeEnd.End; }
+            // The miter sits at the end; the slit at the start: a slit reaching a mitred end face is reported as unsupported (see SolidTests).
+            if (k == FeatureKind.EndMiter) { f.End = TubeEnd.End; }
         }
         Assert.False(vm.HasErrors, string.Join(";", vm.Issues.Select(i => i.Message)));
         Assert.True(vm.IsDirty);
@@ -414,7 +415,7 @@ public sealed class EditorViewModelTests : IDisposable
         Assert.Equal(expected.Features.Select(f => f.Id), other.Model.Features.Select(f => f.Id));
         Assert.Equal(7, other.Features.Count);
         Assert.Equal(vm.Scene!.Body.Positions, other.Scene!.Body.Positions);
-        Assert.Equal(vm.Scene.Features.Count, other.Scene.Features.Count);
+        Assert.Equal(vm.Scene.PreviewShapes.Count, other.Scene.PreviewShapes.Count);
 
         // editing after load still works
         other.Features[0].Parameters.First(p => p.Name == "Diameter").Value = 12;

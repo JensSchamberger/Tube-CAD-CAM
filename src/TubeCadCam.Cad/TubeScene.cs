@@ -4,15 +4,27 @@ using TubeCadCam.Geometry;
 
 namespace TubeCadCam.Cad;
 
-/// <summary>Cutter volume of one feature for display. This is a visualisation aid, not a boolean subtraction from the body.</summary>
+/// <summary>
+/// Cutter volume of one feature for the optional transparent feature preview. It is only a visualisation aid:
+/// the real openings are part of <see cref="TubeScene.Body"/>, and a preview shape is no proof that the feature was applied.
+/// </summary>
 public sealed record FeatureShape(Guid FeatureId, TriangleMesh Mesh);
 
+/// <param name="Body">The real, machined body (openings subtracted).</param>
+/// <param name="Solid">The body with face provenance, cut edges and the list of features that could not be applied.</param>
+/// <param name="PreviewShapes">Cutter volumes for the transparent feature preview (also for features that failed).</param>
+/// <param name="SkippedFeatures">Features without any geometry (invalid parameters or angle missing the profile).</param>
 public sealed record TubeScene(
     ProfileSection Section,
     TriangleMesh Body,
-    IReadOnlyList<FeatureShape> Features,
+    TubeSolid Solid,
+    IReadOnlyList<FeatureShape> PreviewShapes,
     IReadOnlyList<Guid> SkippedFeatures,
-    Bounds3 Bounds);
+    Bounds3 Bounds)
+{
+    /// <summary>Features that are NOT part of the body because the subtraction could not be computed safely.</summary>
+    public IReadOnlyList<FeatureFailure> Failures => Solid.Failures;
+}
 
 /// <summary>Creates the display geometry of a tube model. Pure CAD: no CAM or machine data involved.</summary>
 public static class TubeSceneBuilder
@@ -29,8 +41,17 @@ public static class TubeSceneBuilder
         ProfileSection section = ProfileSectionBuilder.Build(profile);
         var surface = new SectionSurface(section.Outer);
         double length = model.Part.LengthMm;
-        (EndPlane start, EndPlane end) = EndPlane.For(model, section.Outer);
-        TriangleMesh body = TubeBodyBuilder.Build(section, start, end);
+        TubeSolid solid;
+        try
+        {
+            solid = TubeSolidBuilder.Build(model, section);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Result<TubeScene>.Failure("solid.body-failed", ex.Message);
+        }
+
+        TriangleMesh body = solid.Mesh;
 
         var shapes = new List<FeatureShape>();
         var skipped = new List<Guid>();
@@ -83,7 +104,6 @@ public static class TubeSceneBuilder
             }
         }
 
-        IEnumerable<Vector3> all = body.Positions.Concat(shapes.SelectMany(s => s.Mesh.Positions));
-        return Result<TubeScene>.Success(new TubeScene(section, body, shapes, skipped, Bounds3.Of(all)));
+        return Result<TubeScene>.Success(new TubeScene(section, body, solid, shapes, skipped, body.Bounds));
     }
 }

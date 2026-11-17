@@ -75,16 +75,28 @@ public sealed class MainWindowSmokeTests
             var view = (SceneView)window.FindName("Scene3D");
             Assert.NotNull(Find<Viewport3D>(view));
             Assert.Equal(0, view.FeatureVisualCount);
+            Assert.Equal(vm.Scene!.Body.TriangleCount, view.BodyTriangleCount);
+            int bodyWithoutFeatures = view.BodyTriangleCount;
 
             vm.AddFeature(FeatureKind.Hole);
             vm.AddFeature(FeatureKind.Slot);
+            Pump(window);
+            Assert.Empty(vm.Scene!.Failures);
+            Assert.Equal(vm.Scene.Body.TriangleCount, view.BodyTriangleCount);
+            Assert.True(view.BodyTriangleCount != bodyWithoutFeatures);   // the openings are part of the displayed body
+            Assert.Equal(1, view.FeatureVisualCount);                    // only the selected feature is previewed by default
+
+            vm.ShowFeaturePreview = true;
             Pump(window);
             Assert.Equal(2, view.FeatureVisualCount);
 
             vm.AddFeature(FeatureKind.ContourCutout);   // exercises the contour text editor binding
             vm.AddFeature(FeatureKind.EndMiter);        // exercises the end selector binding
             Pump(window);
-            Assert.Equal(3, view.FeatureVisualCount);   // miter is part of the body
+            Assert.Equal(3, view.FeatureVisualCount);   // miter is part of the body, not a cutter
+            vm.ShowFeaturePreview = false;
+            Pump(window);
+            Assert.Equal(0, view.FeatureVisualCount);   // the miter is selected and has no preview volume
 
             vm.ToggleViewModeCommand.Execute(null);
             Pump(window);

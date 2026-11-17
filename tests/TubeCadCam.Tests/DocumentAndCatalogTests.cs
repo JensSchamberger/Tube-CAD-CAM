@@ -58,7 +58,7 @@ public sealed class DocumentAndCatalogTests : IDisposable
         var a = TubeSceneBuilder.Build(model).Value;
         var b = TubeSceneBuilder.Build(loaded.Value).Value;
         Assert.Equal(a.Body.Positions, b.Body.Positions);
-        Assert.Equal(a.Features.Count, b.Features.Count);
+        Assert.Equal(a.PreviewShapes.Count, b.PreviewShapes.Count);
     }
 
     [Fact]

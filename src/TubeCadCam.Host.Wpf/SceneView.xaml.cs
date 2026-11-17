@@ -19,12 +19,18 @@ public partial class SceneView : UserControl
     });
 
     private static readonly Material BodyBackMaterial = Frozen(new DiffuseMaterial(new SolidColorBrush(Color.FromRgb(0x6C, 0x74, 0x80))));
-    private static readonly Material CutterMaterial = Frozen(new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(150, 0xE0, 0x3C, 0x3C))));
-    private static readonly Material SelectedMaterial = Frozen(new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(210, 0xFF, 0xA5, 0x00))));
+    private static readonly Material PreviewMaterial = Frozen(new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(70, 0x4C, 0x9B, 0xE8))));
+    private static readonly Material SelectedMaterial = Frozen(new DiffuseMaterial(new SolidColorBrush(Color.FromArgb(120, 0xFF, 0xA5, 0x00))));
+    private static readonly Material WallHighlightMaterial = Frozen(new MaterialGroup
+    {
+        Children = { new DiffuseMaterial(new SolidColorBrush(Color.FromRgb(0xFF, 0xA5, 0x00))), new EmissiveMaterial(new SolidColorBrush(Color.FromArgb(120, 0xFF, 0x8C, 0x00))) },
+    });
 
     private readonly PerspectiveCamera _camera = new() { FieldOfView = OrbitCamera.FieldOfViewDeg };
     private readonly Dictionary<Visual3D, Guid> _featureVisuals = [];
-    private readonly Dictionary<Guid, GeometryModel3D> _featureModels = [];
+    private GeometryModel3D? _bodyModel;
+    private TubeScene? _bodyScene;
+    private MeshGeometry3D? _bodyGeometry;
     private MainViewModel? _vm;
     private Point _lastPoint, _downPoint;
     private bool _moved;
@@ -44,6 +50,9 @@ public partial class SceneView : UserControl
 
     /// <summary>Number of feature cutter visuals currently displayed (used by UI tests).</summary>
     public int FeatureVisualCount => _featureVisuals.Count;
+
+    /// <summary>Triangle count of the displayed body (used by UI tests).</summary>
+    public int BodyTriangleCount => _bodyGeometry?.TriangleIndices.Count / 3 ?? 0;
 
     private static T Frozen<T>(T freezable) where T : Freezable
     {
@@ -79,7 +88,8 @@ public partial class SceneView : UserControl
                 ApplyCamera();
                 break;
             case nameof(MainViewModel.SelectedFeature):
-                UpdateSelection();
+            case nameof(MainViewModel.ShowFeaturePreview):
+                RebuildScene();
                 break;
         }
     }
@@ -90,10 +100,12 @@ public partial class SceneView : UserControl
     {
         Viewport.Children.Clear();
         _featureVisuals.Clear();
-        _featureModels.Clear();
+        _bodyModel = null;
         TubeScene? scene = _vm?.Scene;
         if (scene is null)
         {
+            _bodyGeometry = null;
+            _bodyScene = null;
             return;
         }
 
@@ -110,24 +122,50 @@ public partial class SceneView : UserControl
             },
         });
 
-        Viewport.Children.Add(new ModelVisual3D
+        // The real, machined body (openings are part of the mesh). The geometry is converted once per scene.
+        if (!ReferenceEquals(_bodyScene, scene))
         {
-            Content = new GeometryModel3D(MeshConverter.ToGeometry(scene.Body), BodyMaterial) { BackMaterial = BodyBackMaterial },
-        });
+            _bodyGeometry = MeshConverter.ToGeometry(scene.Body);
+            _bodyScene = scene;
+        }
+
+        _bodyModel = new GeometryModel3D(_bodyGeometry, BodyMaterial) { BackMaterial = BodyBackMaterial };
+        Viewport.Children.Add(new ModelVisual3D { Content = _bodyModel });
 
         AddAxes(scene.Bounds);
 
         Guid? selected = _vm?.SelectedFeature?.Id;
-        foreach (FeatureShape shape in scene.Features)
+        bool showAll = _vm?.ShowFeaturePreview == true;
+
+        // opening wall of the selected feature, highlighted on top of the body
+        if (selected is { } sel)
         {
-            var model = new GeometryModel3D(MeshConverter.ToGeometry(shape.Mesh), shape.FeatureId == selected ? SelectedMaterial : CutterMaterial)
+            int[] wall = scene.Solid.TrianglesOf(sel).ToArray();
+            if (wall.Length > 0)
             {
-                BackMaterial = shape.FeatureId == selected ? SelectedMaterial : CutterMaterial,
-            };
-            var visual = new ModelVisual3D { Content = model };
+                Viewport.Children.Add(new ModelVisual3D
+                {
+                    Content = new GeometryModel3D(MeshConverter.ToGeometry(scene.Solid.ExtractMesh(wall, 0.03)), WallHighlightMaterial)
+                    {
+                        BackMaterial = WallHighlightMaterial,
+                    },
+                });
+            }
+        }
+
+        // optional transparent preview of the cutting volumes (a visual aid only)
+        foreach (FeatureShape shape in scene.PreviewShapes)
+        {
+            bool isSelected = shape.FeatureId == selected;
+            if (!showAll && !isSelected)
+            {
+                continue;
+            }
+
+            Material m = isSelected ? SelectedMaterial : PreviewMaterial;
+            var visual = new ModelVisual3D { Content = new GeometryModel3D(MeshConverter.ToGeometry(shape.Mesh), m) { BackMaterial = m } };
             Viewport.Children.Add(visual);
             _featureVisuals[visual] = shape.FeatureId;
-            _featureModels[shape.FeatureId] = model;
         }
     }
 
@@ -144,17 +182,6 @@ public partial class SceneView : UserControl
         Axis((q, l) => new Vector3(l, q.X, q.Y), Colors.OrangeRed);       // X = tube axis
         Axis((q, l) => new Vector3(q.X, l, q.Y), Colors.LimeGreen);       // Y (0°)
         Axis((q, l) => new Vector3(q.X, q.Y, l), Colors.DodgerBlue);      // Z (90°)
-    }
-
-    private void UpdateSelection()
-    {
-        Guid? selected = _vm?.SelectedFeature?.Id;
-        foreach ((Guid id, GeometryModel3D model) in _featureModels)
-        {
-            Material m = id == selected ? SelectedMaterial : CutterMaterial;
-            model.Material = m;
-            model.BackMaterial = m;
-        }
     }
 
     private void ApplyCamera()
@@ -222,19 +249,34 @@ public partial class SceneView : UserControl
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e) => _vm?.Camera.Zoom(e.Delta);
 
-    /// <summary>Front-most hit decides: a feature id if a cutter is hit first, otherwise null (body / empty space).</summary>
+    /// <summary>
+    /// Front-most hit decides: a preview volume or the wall of an opening selects that feature; the body surface elsewhere
+    /// or empty space returns null. The wall is identified through the face provenance of the hit triangle.
+    /// </summary>
     public Guid? PickFeature(Point position)
     {
         Guid? found = null;
         VisualTreeHelper.HitTest(Viewport, null, result =>
         {
-            if (result is RayMeshGeometry3DHitTestResult hit)
+            if (result is not RayMeshGeometry3DHitTestResult hit)
             {
-                found = _featureVisuals.TryGetValue(hit.VisualHit, out Guid id) ? id : null;
-                return HitTestResultBehavior.Stop;
+                return HitTestResultBehavior.Continue;
             }
 
-            return HitTestResultBehavior.Continue;
+            if (_featureVisuals.TryGetValue(hit.VisualHit, out Guid id))
+            {
+                found = id;
+            }
+            else if (ReferenceEquals(hit.ModelHit, _bodyModel) && _bodyScene is { } scene)
+            {
+                int triangle = hit.VertexIndex1 / 3; // the render mesh has three own vertices per triangle, in order
+                if (triangle >= 0 && triangle < scene.Solid.TriangleTags.Count)
+                {
+                    found = scene.Solid.TriangleTags[triangle].FeatureId;
+                }
+            }
+
+            return HitTestResultBehavior.Stop;
         }, new PointHitTestParameters(position));
         return found;
     }

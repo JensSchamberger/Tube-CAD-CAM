@@ -30,6 +30,7 @@ public sealed class MainViewModel : ViewModelBase
     private string? _filePath;
     private bool _isDirty;
     private bool _suspend;
+    private bool _showFeaturePreview;
     private string _libraryDesignation = string.Empty;
     private FeatureKind _newFeatureKind = FeatureKind.Hole;
 
@@ -99,6 +100,9 @@ public sealed class MainViewModel : ViewModelBase
     public string Status { get => _status; private set => Set(ref _status, value); }
     public bool IsDirty => _isDirty;
     public string? FilePath => _filePath;
+
+    /// <summary>Shows the transparent cutter preview of all features (the selected feature is always previewed).</summary>
+    public bool ShowFeaturePreview { get => _showFeaturePreview; set => Set(ref _showFeaturePreview, value); }
 
     public ViewMode ViewMode
     {
@@ -215,6 +219,23 @@ public sealed class MainViewModel : ViewModelBase
         Model = model;
         Result<TubeScene> scene = TubeSceneBuilder.Build(model);
         Scene = scene.IsSuccess ? scene.Value : null;
+        if (!scene.IsSuccess)
+        {
+            issues.AddRange(scene.Issues);
+        }
+
+        // Features that could not be subtracted are reported explicitly; they are not part of the 3D body.
+        IReadOnlyList<FeatureFailure> failures = Scene?.Failures ?? [];
+        foreach (FeatureViewModel fv in Features)
+        {
+            FeatureFailure? failure = failures.FirstOrDefault(x => x.FeatureId == fv.Id);
+            fv.SetFailure(failure);
+            if (failure is not null)
+            {
+                issues.Add(new ValidationIssue(failure.Code, $"{fv.DisplayName}: nicht im 3D-Körper enthalten – {failure.Message}"));
+            }
+        }
+
         Issues = issues;
         OnPropertyChanged(nameof(HasErrors));
     }

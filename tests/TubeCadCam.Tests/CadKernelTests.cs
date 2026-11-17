@@ -51,7 +51,7 @@ public class CadKernelTests
         var b = TubeSceneBuilder.Build(m).Value;
         Assert.Equal(a.Body.Positions, b.Body.Positions);
         Assert.Equal(a.Body.Indices, b.Body.Indices);
-        Assert.Equal(a.Features[0].Mesh.Positions, b.Features[0].Mesh.Positions);
+        Assert.Equal(a.PreviewShapes[0].Mesh.Positions, b.PreviewShapes[0].Mesh.Positions);
     }
 
     [Theory]

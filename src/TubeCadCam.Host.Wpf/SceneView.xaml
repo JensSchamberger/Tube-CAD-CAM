@@ -6,6 +6,6 @@
         <Viewport3D x:Name="Viewport" ClipToBounds="True" />
         <TextBlock Margin="8" VerticalAlignment="Bottom" HorizontalAlignment="Left" Foreground="#FFBBBBBB" FontSize="11"
                    TextWrapping="Wrap" MaxWidth="560"
-                   Text="Links ziehen: drehen · Rechts/Mitte ziehen: verschieben · Rad: zoomen · Klick: Feature wählen. Rot = Schnittvolumen der Bearbeitungen (Darstellung); das Material wird im 3D-Modell nicht boolesch abgezogen. Gehrungen sind im Körper enthalten." />
+                   Text="Links ziehen: drehen · Rechts/Mitte ziehen: verschieben · Rad: zoomen · Klick auf eine Öffnung (Lochwand): Feature wählen. Der Körper zeigt die tatsächlich berechneten Öffnungen. Die optionale transparente Vorschau ist nur eine Hilfe und kein Nachweis, dass ein Feature angewendet wurde." />
     </Grid>
 </UserControl>

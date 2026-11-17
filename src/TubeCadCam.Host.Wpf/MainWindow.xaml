@@ -132,13 +132,15 @@
                                         Command="{Binding AddFeatureCommand}" CommandParameter="{Binding NewFeatureKind}" />
                             </Grid>
                             <ListBox ItemsSource="{Binding Features}" SelectedItem="{Binding SelectedFeature}"
-                                     DisplayMemberPath="DisplayName" MinHeight="70" MaxHeight="150" />
+                                     DisplayMemberPath="ListLabel" MinHeight="70" MaxHeight="150" />
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,6">
                                 <Button Content="Duplizieren" Command="{Binding DuplicateFeatureCommand}" Padding="8,0" />
                                 <Button Content="Löschen (Entf)" Command="{Binding RemoveFeatureCommand}" Padding="8,0" Margin="4,0,0,0" />
                             </StackPanel>
                             <StackPanel DataContext="{Binding SelectedFeature}" Style="{StaticResource HideWhenNull}">
                                 <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBlock Text="{Binding FailureText}" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,0,0,4"
+                                           Visibility="{Binding HasFailed, Converter={StaticResource B2V}}" />
                                 <StackPanel Visibility="{Binding HasEnd, Converter={StaticResource B2V}}" Margin="0,0,0,4">
                                     <TextBlock Text="Rohrende (Start = x 0, Ende = x Länge)" />
                                     <ComboBox ItemsSource="{Binding Ends}" SelectedItem="{Binding End}" />
@@ -169,6 +171,8 @@
                     <Button Content="Seite" Command="{Binding SetViewCommand}" CommandParameter="{x:Static pres:ViewPreset.Side}" />
                     <Button Content="Oben" Command="{Binding SetViewCommand}" CommandParameter="{x:Static pres:ViewPreset.Top}" />
                     <Button Content="Stirn" Command="{Binding SetViewCommand}" CommandParameter="{x:Static pres:ViewPreset.End}" />
+                    <Separator />
+                    <CheckBox Content="Feature-Vorschau (transparent)" IsChecked="{Binding ShowFeaturePreview}" VerticalAlignment="Center" />
                 </ToolBar>
                 <Grid Grid.Row="1">
                     <local:SceneView x:Name="Scene3D" Visibility="{Binding Is3D, Converter={StaticResource B2V}}" />

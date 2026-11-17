@@ -8,8 +8,8 @@ namespace TubeCadCam.Cam;
 /// </summary>
 public sealed class FeatureContourRecognizer : IContourRecognizer
 {
-    public const int CircleSegments = 128;
-    public const int CornerSegments = 12;
+    public const int CircleSegments = FeatureTessellation.CircleSegments;
+    public const int CornerSegments = FeatureTessellation.CornerSegments;
 
     public RecognitionResult Recognize(TubeModel model)
     {

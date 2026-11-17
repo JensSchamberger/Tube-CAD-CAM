@@ -29,7 +29,7 @@ public class FeatureTests
             new EndMiterFeature(G(), TubeEnd.End, 20, 90));
         Assert.DoesNotContain(m.Validate(), i => i.Severity == IssueSeverity.Error);
         var scene = TubeSceneBuilder.Build(m).Value;
-        Assert.Equal(6, scene.Features.Count);       // all but the miter (part of the body)
+        Assert.Equal(6, scene.PreviewShapes.Count);       // all but the miter (part of the body)
         Assert.Empty(scene.SkippedFeatures);
     }
 
@@ -145,7 +145,7 @@ public class FeatureTests
     {
         var hole = new HoleFeature(G(), 400, 90, 10);          // +Z side
         var scene = TubeSceneBuilder.Build(Round(hole)).Value;
-        var cutter = scene.Features.Single().Mesh;
+        var cutter = scene.PreviewShapes.Single().Mesh;
         MeshTestHelpers.AssertWatertight(cutter);
         Bounds3 b = cutter.Bounds;
         Assert.Equal(400, b.Center.X, 0.5);
@@ -157,7 +157,7 @@ public class FeatureTests
     public void Slit_cutter_runs_through_the_tube_from_the_end()
     {
         var scene = TubeSceneBuilder.Build(Round(new SlitFeature(G(), TubeEnd.End, 0, 4, 60))).Value;
-        Bounds3 b = scene.Features.Single().Mesh.Bounds;
+        Bounds3 b = scene.PreviewShapes.Single().Mesh.Bounds;
         Assert.True(b.Min.X <= 940 + 1e-9 && b.Max.X >= 1000);
         Assert.True(b.Max.Y > 30 && b.Min.Y < -30);             // along section direction 0° (Y), through both walls
         Assert.Equal(4, b.Max.Z - b.Min.Z, 9);
@@ -168,7 +168,7 @@ public class FeatureTests
     {
         var scene = TubeSceneBuilder.Build(Round(new HoleFeature(G(), 400, 0, -5))).Value;
         Assert.Single(scene.SkippedFeatures);
-        Assert.Empty(scene.Features);
+        Assert.Empty(scene.PreviewShapes);
     }
 
     [Fact]

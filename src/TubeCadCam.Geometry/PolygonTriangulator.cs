@@ -27,7 +27,13 @@ public static class PolygonTriangulator
 {
     private const double Eps = 1e-12;
 
-    public static Triangulation Triangulate(Polygon2 outer, IReadOnlyList<Polygon2> holes)
+    /// <param name="outer">Outer polygon.</param>
+    /// <param name="holes">Holes (any orientation).</param>
+    /// <param name="flatTolerance">
+    /// An ear whose tip is closer than this to the line through its neighbours is considered flat and is only used when no
+    /// better ear exists. Use the weld tolerance when the result is welded afterwards (prevents slivers that collapse).
+    /// </param>
+    public static Triangulation Triangulate(Polygon2 outer, IReadOnlyList<Polygon2> holes, double flatTolerance = 0)
     {
         var verts = new List<Vector2>(outer.Vertices);
         var outerIdx = Enumerable.Range(0, verts.Count).ToList();
@@ -57,7 +63,7 @@ public static class PolygonTriangulator
             poly = Bridge(verts, poly, hole, holeLoops);
         }
 
-        return new Triangulation(verts, EarClip(verts, poly));
+        return new Triangulation(verts, EarClip(verts, poly, flatTolerance));
     }
 
     private static List<int> Bridge(List<Vector2> v, List<int> poly, List<int> hole, List<List<int>> allHoles)
@@ -144,7 +150,7 @@ public static class PolygonTriangulator
         return inside;
     }
 
-    private static List<int> EarClip(List<Vector2> v, List<int> poly)
+    private static List<int> EarClip(List<Vector2> v, List<int> poly, double flatTolerance)
     {
         var result = new List<int>();
         var rem = new List<int>(poly);
@@ -153,9 +159,18 @@ public static class PolygonTriangulator
         {
             int n = rem.Count;
             int found = -1;
+            // Prefer ears with positive area so that no zero-area triangles are produced while other ears exist.
             for (int i = 0; i < n && found < 0; i++)
             {
-                if (IsEar(v, rem, i))
+                if (IsEar(v, rem, i, strictlyConvex: true, flatTolerance))
+                {
+                    found = i;
+                }
+            }
+
+            for (int i = 0; i < n && found < 0; i++)
+            {
+                if (IsEar(v, rem, i, strictlyConvex: false, flatTolerance))
                 {
                     found = i;
                 }
@@ -199,13 +214,15 @@ public static class PolygonTriangulator
         return (b - a).Cross(c - b);
     }
 
-    private static bool IsEar(List<Vector2> v, List<int> rem, int i)
+    private static bool IsEar(List<Vector2> v, List<int> rem, int i, bool strictlyConvex, double flatTolerance)
     {
         int n = rem.Count;
         Vector2 a = v[rem[(i + n - 1) % n]], b = v[rem[i]], c = v[rem[(i + 1) % n]];
-        if ((b - a).Cross(c - b) < -Eps)
+        double turn = (b - a).Cross(c - b);
+        double height = turn / Math.Max((c - a).Length, 1e-300);
+        if (turn < -Eps || (strictlyConvex && (turn <= Eps || height <= flatTolerance)))
         {
-            return false; // reflex
+            return false; // reflex (or collinear when strict ears are preferred)
         }
 
         for (int k = 0; k < n; k++)
@@ -216,7 +233,7 @@ public static class PolygonTriangulator
                 continue; // coincident bridge copies
             }
 
-            if (PointInTriangle(p, a, b, c))
+            if (PointInTriangle(p, a, b, c, flatTolerance))
             {
                 return false;
             }
@@ -225,9 +242,10 @@ public static class PolygonTriangulator
         return true;
     }
 
-    private static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
+    private static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c, double tolerance)
     {
-        // Inclusive test: a vertex lying on the ear's diagonal would make the remaining polygon touch itself.
+        // Inclusive test: a vertex lying on (or within `tolerance` of) the ear's diagonal would make the remaining polygon
+        // touch itself or force a flat triangle later.
         double area = (b - a).Cross(c - a);
         if (Math.Abs(area) <= Eps)
         {
@@ -237,7 +255,10 @@ public static class PolygonTriangulator
             return Math.Abs((b - a).Cross(p - a)) <= Eps && p.X >= minX && p.X <= maxX && p.Y >= minY && p.Y <= maxY;
         }
 
-        double d1 = (b - a).Cross(p - a), d2 = (c - b).Cross(p - b), d3 = (a - c).Cross(p - c);
-        return d1 >= -Eps && d2 >= -Eps && d3 >= -Eps;
+        double d1 = Dist(a, b, p), d2 = Dist(b, c, p), d3 = Dist(c, a, p);
+        return d1 >= -Math.Max(tolerance, Eps) && d2 >= -Math.Max(tolerance, Eps) && d3 >= -Math.Max(tolerance, Eps);
     }
+
+    /// <summary>Signed distance of p from the line a→b (positive on the left).</summary>
+    private static double Dist(Vector2 a, Vector2 b, Vector2 p) => (b - a).Cross(p - a) / Math.Max((b - a).Length, 1e-300);
 }

@@ -1,2 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <!-- 2D polygon clipping (Boost Software License 1.0), see docs/Boolean-Entscheidung.md -->
+    <PackageReference Include="Clipper2" />
+  </ItemGroup>
 </Project>

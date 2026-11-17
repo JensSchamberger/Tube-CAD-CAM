@@ -13,6 +13,7 @@ public sealed class FeatureViewModel : ViewModelBase
     private string _contourText;
     private bool _isSelected;
     private string _displayName;
+    private string? _failureText;
 
     public FeatureViewModel(FeatureKind kind, Guid id, IEnumerable<(string Name, double Value)> values, TubeEnd end, string contourText, Action changed)
     {
@@ -36,7 +37,38 @@ public sealed class FeatureViewModel : ViewModelBase
     public bool HasEnd => FeatureDescriptors.HasEnd(Kind);
     public bool HasContourText => FeatureDescriptors.HasContourText(Kind);
 
-    public string DisplayName { get => _displayName; set => Set(ref _displayName, value); }
+    public string DisplayName
+    {
+        get => _displayName;
+        set
+        {
+            if (Set(ref _displayName, value))
+            {
+                OnPropertyChanged(nameof(ListLabel));
+            }
+        }
+    }
+
+    /// <summary>Set when the feature could not be subtracted from the body (it is then NOT part of the 3D model).</summary>
+    public string? FailureText
+    {
+        get => _failureText;
+        private set
+        {
+            if (Set(ref _failureText, value))
+            {
+                OnPropertyChanged(nameof(HasFailed));
+                OnPropertyChanged(nameof(ListLabel));
+            }
+        }
+    }
+
+    public bool HasFailed => _failureText is not null;
+
+    public string ListLabel => (HasFailed ? "✗ " : string.Empty) + DisplayName;
+
+    public void SetFailure(FeatureFailure? failure) =>
+        FailureText = failure is null ? null : $"Nicht im 3D-Körper enthalten ({failure.Code}): {failure.Message}";
     public bool IsSelected { get => _isSelected; set => Set(ref _isSelected, value); }
 
     public TubeEnd End
