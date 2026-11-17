@@ -27,6 +27,14 @@ Das Weltsystem ist rechtshändig (`X × Y = Z`). Die 3D-Ansicht nutzt **+Z als �
   Senkrechte zur Rohrachse geneigt ist. Positiver Winkel entfernt mehr Material auf der Seite `b` = Achsrichtung + 90°.
   Der kürzeste Punkt der Stirnfläche bleibt bei `x = 0` bzw. `x = Länge`, d. h. `Länge` ist das **Hüllmaß**.
 
+## Schnittsemantik (Phase 2.5)
+Jedes Wand-Feature ist ein Prisma entlang der Flächennormalen `N` der getroffenen Facette (`T` = `N` um +90°, `t = p·T`, `h = p·N`).
+* **Wandschnitt** (Bohrung, Rechteck, Langloch, Kontur, Ausklinkung): entfernt je Schnittlinie die **oberste Materialschicht** (Platte zwischen
+  äußerer und innerer Facette). Das gilt für alle Profiltypen; ist die Schicht nicht eindeutig (Schnitt quert Kante/Steg-Übergang), schlägt das Feature benannt fehl.
+* **Schlitz:** entfernt **alle** Schichten entlang seiner Richtung (durch beide Wände) im Streifen der Breite `Width`.
+* **Ausklinkung/Schlitz** reichen über die Stirnfläche hinaus (Überstand `SolidOptions.EndOvershootMm`), damit keine deckungsgleichen Flächen entstehen.
+* Die Herkunft jedes Dreiecks (`FaceTag`) und jede Schnittkante (`FeatureEdge`, obere/untere Seite relativ zur Schnittrichtung) sind im `TubeSolid` abrufbar.
+
 ## Bewusste Vereinfachungen
 * Winkel bei offenen/nicht-konvexen Profilen beziehen sich auf den Strahl vom Querschnittsursprung, nicht auf eine
   Profilfläche. Ein flächenbezogenes Platzieren (Feature auf „Flansch 1“) ist noch nicht implementiert.

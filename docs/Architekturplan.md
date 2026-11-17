@@ -8,9 +8,9 @@ Host.Wpf ─► Presentation ─► Application ─► Cam ─► Cad ─► Dom
 ```
 | Projekt | Verantwortung | Abhängig von |
 |---|---|---|
-| `Geometry` | Vektoren, Polygone, Dreiecksnetz, Triangulierung – keine Fachlogik | – |
+| `Geometry` | Vektoren, Polygone, Dreiecksnetz, Triangulierung, 2D-Booleans (Clipper2), Netz-Topologieprüfung, zentrale Toleranzen – keine Fachlogik | – |
 | `Domain` | Profildefinitionen (parametrisch), Material, Teil, Auftrag, Status, `Result` | Geometry |
-| `Cad` | Features (7 Typen), `TubeModel`, Validierung, Koordinatensystem, Querschnitts- und 3D-Körper-/Szenengenerator | Domain, Geometry |
+| `Cad` | Features (7 Typen), `TubeModel`, Validierung, Koordinatensystem, Querschnitt, **`TubeSolidBuilder`** (bearbeiteter Körper mit Herkunft) und Szenengenerator | Domain, Geometry |
 | `Cam` | Konturen, Planer, Maschinenmodell/-adapter, Postprozessor-Schnittstelle, **NC-Freigabe-Gate** | Cad, Domain, Geometry |
 | `Nesting` | 1D-Stangenbelegung mit Schnittspalt/Restlänge | Domain |
 | `Application` | Use Cases, Ports (Repository, STEP, Lizenz), Leitzentrale-Vertrag V1, **Funktionskatalog** (MCP-Basis) | Cam, Cad, Nesting, Domain |
@@ -34,6 +34,7 @@ Die Regeln sind als Test festgeschrieben (`ArchitectureTests`). Cam und Nesting 
 |---|---|---|
 | 1 | Gerüst, Profilmodelle, Features, Konturen aus Features, 1D-Nesting-Baseline, JSON-Speicher, Funktionskatalog, WPF-Profileditor | **erledigt** |
 | 2 | Profilbibliothek (Mechanismus), 3D-Kern, Feature-Editor, interaktive 3D-UI, Dokument speichern/laden – siehe `docs/Phase2-Ergebnis.md` | **erledigt** (UI nur gebaut, nicht ausgeführt; keine Normdaten) |
+| 2.5 | Echte boolesche Bearbeitung im 3D-Körper (Clipper2 + Randflächen-Konstruktor), Herkunft von Flächen/Kanten – siehe `docs/Phase25-Ergebnis.md`, `docs/Boolean-Entscheidung.md` | **erledigt** (UI nur gebaut, nicht ausgeführt) |
 | 3 | STEP-Import (Bibliothek wählen), Konturerkennung aus Solids | offen |
 | 4 | Maschinenkonfiguration (Datei), Kinematikmodell, Schneidreihenfolge, An-/Ausfahrwege | offen |
 | 5 | Kollisions-/Spannfutterprüfung, Simulation | offen |

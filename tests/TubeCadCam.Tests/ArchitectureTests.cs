@@ -88,4 +88,36 @@ public class ArchitectureTests
             Assert.DoesNotContain(Assembly.Load(layer).GetTypes(), t => t.IsClass && !t.IsAbstract && typeof(TubeCadCam.Application.Ports.ILicenseGate).IsAssignableFrom(t));
         }
     }
+
+    [Fact]
+    public void The_2d_clipping_library_is_used_by_the_geometry_layer_only()
+    {
+        foreach (string layer in Allowed.Keys)
+        {
+            bool uses = Assembly.Load(layer).GetReferencedAssemblies().Any(a => a.Name == "Clipper2Lib");
+            Assert.Equal(layer == "TubeCadCam.Geometry", uses);
+        }
+    }
+
+    [Fact]
+    public void Solid_construction_lives_in_the_cad_kernel_and_knows_no_cam_nesting_or_machine_types()
+    {
+        Assembly cad = Assembly.Load("TubeCadCam.Cad");
+        Assert.NotNull(cad.GetType("TubeCadCam.Cad.TubeSolidBuilder"));
+        Assert.DoesNotContain(cad.GetReferencedAssemblies(), a => a.Name is "TubeCadCam.Cam" or "TubeCadCam.Nesting" or "TubeCadCam.Infrastructure");
+        // a solid exposes provenance (faces/edges per feature id) for later CAM use without referencing CAM
+        Assert.NotNull(cad.GetType("TubeCadCam.Cad.FaceTag"));
+        Assert.NotNull(cad.GetType("TubeCadCam.Cad.FeatureEdge"));
+    }
+
+    [Fact]
+    public void Nc_output_stays_locked_no_plan_can_be_validated_by_the_solid_builder()
+    {
+        // the CAM plan status can only become Validated through code that does not exist yet
+        var model = TubeModelTests.NewModel();
+        var plan = new TubeCadCam.Cam.CamPlanner(new TubeCadCam.Cam.FeatureContourRecognizer()).Plan(model).Value;
+        Assert.Equal(TubeCadCam.Cam.CamPlanStatus.Draft, plan.Status);
+        var machine = new TubeCadCam.Cam.Machines.ConfiguredMachineAdapter(new TubeCadCam.Cam.Machines.MachineDefinition("m", "m", [], new HashSet<string> { "RoundTubeProfile" }, 6500));
+        Assert.False(TubeCadCam.Cam.Nc.NcReleaseGate.Evaluate(plan, machine).IsSuccess);
+    }
 }

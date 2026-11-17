@@ -45,3 +45,60 @@ internal static class MeshTestHelpers
         }
     }
 }
+
+internal static class SolidTestHelpers
+{
+    /// <summary>Parity ray casting along an irrational direction (robust against hitting edges exactly).</summary>
+    public static bool Inside(TriangleMesh mesh, Vector3 p)
+    {
+        Vector3 d = new Vector3(0.5773502691896258, 0.3123456789, 0.7541234567).Normalized();
+        int hits = 0;
+        for (int i = 0; i < mesh.Indices.Count; i += 3)
+        {
+            Vector3 a = mesh.Positions[mesh.Indices[i]], b = mesh.Positions[mesh.Indices[i + 1]], c = mesh.Positions[mesh.Indices[i + 2]];
+            Vector3 e1 = b - a, e2 = c - a, h = d.Cross(e2);
+            double det = e1.Dot(h);
+            if (Math.Abs(det) < 1e-14)
+            {
+                continue;
+            }
+
+            Vector3 s = p - a;
+            double u = s.Dot(h) / det;
+            if (u < 0 || u > 1)
+            {
+                continue;
+            }
+
+            Vector3 q = s.Cross(e1);
+            double v = d.Dot(q) / det;
+            if (v < 0 || u + v > 1)
+            {
+                continue;
+            }
+
+            if (e2.Dot(q) / det > 1e-12)
+            {
+                hits++;
+            }
+        }
+
+        return hits % 2 == 1;
+    }
+
+    public static TubeCadCam.Cad.TubeSolid Solid(TubeCadCam.Cad.TubeModel m) => TubeCadCam.Cad.TubeSceneBuilder.Build(m).Value.Solid;
+
+    public static double BaseVolume(TubeCadCam.Cad.TubeModel m) => Solid(m with { Features = [] }).Topology.Volume;
+
+    public static void AssertValid(TubeCadCam.Cad.TubeSolid s)
+    {
+        Assert.True(s.Topology.IsValidSolid, s.Topology.ToString());
+        MeshTopologyReport again = MeshTopology.Analyze(s.Mesh);   // independent re-check on the final render mesh
+        Assert.True(again.IsValidSolid, again.ToString());
+        Assert.Equal(s.Topology.Volume, again.Volume, Math.Abs(s.Topology.Volume) * 1e-9);
+        Assert.Equal(s.Mesh.TriangleCount, s.TriangleTags.Count);
+    }
+
+    public static double EndFaceArea(TubeCadCam.Cad.TubeSolid s, TubeCadCam.Cad.TubeEnd end) =>
+        Enumerable.Range(0, s.TriangleTags.Count).Where(t => s.TriangleTags[t].Kind == TubeCadCam.Cad.SolidFaceKind.EndFace && s.TriangleTags[t].End == end).Sum(s.TriangleArea);
+}

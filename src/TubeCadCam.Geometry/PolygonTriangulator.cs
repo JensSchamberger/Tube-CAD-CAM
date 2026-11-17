@@ -33,7 +33,11 @@ public static class PolygonTriangulator
     /// An ear whose tip is closer than this to the line through its neighbours is considered flat and is only used when no
     /// better ear exists. Use the weld tolerance when the result is welded afterwards (prevents slivers that collapse).
     /// </param>
-    public static Triangulation Triangulate(Polygon2 outer, IReadOnlyList<Polygon2> holes, double flatTolerance = 0)
+    /// <param name="improveQuality">
+    /// Afterwards flips interior diagonals until the triangulation is (constrained) Delaunay. The polygon boundary is never
+    /// changed. This removes the extremely long, thin fan triangles that plain ear clipping produces.
+    /// </param>
+    public static Triangulation Triangulate(Polygon2 outer, IReadOnlyList<Polygon2> holes, double flatTolerance = 0, bool improveQuality = false)
     {
         var verts = new List<Vector2>(outer.Vertices);
         var outerIdx = Enumerable.Range(0, verts.Count).ToList();
@@ -63,7 +67,13 @@ public static class PolygonTriangulator
             poly = Bridge(verts, poly, hole, holeLoops);
         }
 
-        return new Triangulation(verts, EarClip(verts, poly, flatTolerance));
+        List<int> tris = EarClip(verts, poly, flatTolerance);
+        if (improveQuality)
+        {
+            Delaunify(verts, tris, flatTolerance);
+        }
+
+        return new Triangulation(verts, tris);
     }
 
     private static List<int> Bridge(List<Vector2> v, List<int> poly, List<int> hole, List<List<int>> allHoles)
@@ -205,6 +215,69 @@ public static class PolygonTriangulator
 
         result.AddRange(rem);
         return result;
+    }
+
+    /// <summary>Delaunay edge flips on the interior edges of a counter-clockwise triangle list (in place).</summary>
+    private static void Delaunify(List<Vector2> v, List<int> tris, double flatTolerance)
+    {
+        int count = tris.Count / 3;
+        for (int pass = 0; pass < 200; pass++)
+        {
+            var directed = new Dictionary<(int, int), (int Tri, int Opposite)>();
+            for (int t = 0; t < count; t++)
+            {
+                int a = tris[3 * t], b = tris[(3 * t) + 1], c = tris[(3 * t) + 2];
+                directed[(a, b)] = (t, c);
+                directed[(b, c)] = (t, a);
+                directed[(c, a)] = (t, b);
+            }
+
+            var dirty = new HashSet<int>();
+            int flips = 0;
+            foreach (((int u, int w), (int t1, int o1)) in directed.ToArray())
+            {
+                if (u > w || dirty.Contains(t1) || !directed.TryGetValue((w, u), out (int Tri, int Opposite) other) || dirty.Contains(other.Tri))
+                {
+                    continue;
+                }
+
+                int t2 = other.Tri, o2 = other.Opposite;
+                // quad u, o2, w, o1 (counter-clockwise); flip u-w to o1-o2 if o2 lies inside the circumcircle of (u, w, o1)
+                if (InCircle(v[u], v[w], v[o1], v[o2]) <= 1e-12 || !(Area2(v[u], v[o2], v[o1]) > 1e-12 && Area2(v[o2], v[w], v[o1]) > 1e-12))
+                {
+                    continue;
+                }
+
+                if (flatTolerance > 0 && (Height(v[u], v[o2], v[o1]) <= flatTolerance || Height(v[o2], v[w], v[o1]) <= flatTolerance))
+                {
+                    continue;
+                }
+
+                (tris[3 * t1], tris[(3 * t1) + 1], tris[(3 * t1) + 2]) = (u, o2, o1);
+                (tris[3 * t2], tris[(3 * t2) + 1], tris[(3 * t2) + 2]) = (o2, w, o1);
+                dirty.Add(t1);
+                dirty.Add(t2);
+                flips++;
+            }
+
+            if (flips == 0)
+            {
+                return;
+            }
+        }
+    }
+
+    private static double Area2(Vector2 a, Vector2 b, Vector2 c) => (b - a).Cross(c - a);
+
+    private static double Height(Vector2 a, Vector2 b, Vector2 c) =>
+        Math.Abs(Area2(a, b, c)) / Math.Max(Math.Max((b - a).Length, (c - b).Length), (a - c).Length);
+
+    /// <summary>Positive if d lies inside the circumcircle of the counter-clockwise triangle (a, b, c).</summary>
+    private static double InCircle(Vector2 a, Vector2 b, Vector2 c, Vector2 d)
+    {
+        double adx = a.X - d.X, ady = a.Y - d.Y, bdx = b.X - d.X, bdy = b.Y - d.Y, cdx = c.X - d.X, cdy = c.Y - d.Y;
+        double ad = (adx * adx) + (ady * ady), bd = (bdx * bdx) + (bdy * bdy), cd = (cdx * cdx) + (cdy * cdy);
+        return (adx * ((bdy * cd) - (bd * cdy))) - (ady * ((bdx * cd) - (bd * cdx))) + (ad * ((bdx * cdy) - (bdy * cdx)));
     }
 
     private static double Cross(List<Vector2> v, List<int> rem, int i)

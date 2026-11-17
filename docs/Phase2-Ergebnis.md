@@ -1,5 +1,7 @@
 # Phase 2 – Ergebnis, Testübersicht, Einschränkungen
 
+> **Update Phase 2.5:** Einschränkung 3 (keine Boolesche Subtraktion, rote Schnittvolumen) ist behoben – siehe [Phase25-Ergebnis.md](Phase25-Ergebnis.md). Die Testzahlen unten sind der Stand von Phase 2 (189 Tests); aktuell 276.
+
 Stand: 2026-11-17 · Branch `claude/youthful-goodall-gielme`
 
 ## Umgesetzt (alle Zahlen aus echten Testläufen auf Linux, .NET 10.0.115)

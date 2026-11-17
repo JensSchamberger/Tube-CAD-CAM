@@ -417,7 +417,7 @@ internal sealed class SolidAssembler
         var tag = new FaceTag(SurfaceKind(facet.Loop), facet.Loop, null, null);
         foreach (PolygonRegion r in regions)
         {
-            Triangulation tri = PolygonTriangulator.Triangulate(r.Outer, r.Holes, 4 * Tolerance.Weld);
+            Triangulation tri = PolygonTriangulator.Triangulate(r.Outer, r.Holes, 4 * Tolerance.Weld, improveQuality: true);
             for (int i = 0; i < tri.Indices.Count; i += 3)
             {
                 AddTriangle(lift(facet, tri.Vertices[tri.Indices[i]]), lift(facet, tri.Vertices[tri.Indices[i + 1]]), lift(facet, tri.Vertices[tri.Indices[i + 2]]), tag, normal);
@@ -559,7 +559,7 @@ internal sealed class SolidAssembler
                 PolygonRegion r = cuts.Count == 0 ? region : new PolygonRegion(
                     Polygon2Boolean.InsertOnEdgePoints(region.Outer, pool, 4 * Tolerance.Linear),
                     region.Holes.Select(h => Polygon2Boolean.InsertOnEdgePoints(h, pool, 4 * Tolerance.Linear)).ToList());
-                Triangulation tri = PolygonTriangulator.Triangulate(r.Outer, r.Holes, 4 * Tolerance.Weld);
+                Triangulation tri = PolygonTriangulator.Triangulate(r.Outer, r.Holes, 4 * Tolerance.Weld, improveQuality: true);
                 for (int i = 0; i < tri.Indices.Count; i += 3)
                 {
                     Vector2 a = tri.Vertices[tri.Indices[i]], b = tri.Vertices[tri.Indices[i + 1]], c = tri.Vertices[tri.Indices[i + 2]];
